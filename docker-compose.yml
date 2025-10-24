@@ -1,0 +1,15 @@
+services:
+  users-service:
+    build: .
+    container_name: users-service
+    ports:
+      - "4000:4000"
+    networks:
+      - my-microservices-net
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydb
+
+
+networks:
+  my-microservices-net:
+    external: true
