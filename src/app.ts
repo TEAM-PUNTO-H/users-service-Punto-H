@@ -1,9 +1,12 @@
 import express from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import userRouter from "./routes/users";
+import cookieParser from "cookie-parser";
 
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
+require('dotenv').config();
 
 
 const swaggerSpec = swaggerJsdoc({

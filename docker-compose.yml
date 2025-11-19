@@ -8,7 +8,8 @@ services:
       - my-microservices-net
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydb
-
+    env_file:
+      - .env
 
 networks:
   my-microservices-net:
