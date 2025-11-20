@@ -8,6 +8,6 @@ export const User = sequelize.define('Users', {
   fullName: { type: DataTypes.STRING, allowNull: false },
   socialMedia: {type: DataTypes.STRING, allowNull: true},
   workingHours: {type: DataTypes.STRING, allowNull: true},
-  phoneNumber: {type: DataTypes.INTEGER, allowNull: false},
+  phoneNumber: {type: DataTypes.STRING, allowNull: false},
   address: {type: DataTypes.STRING, allowNull: true},
 });

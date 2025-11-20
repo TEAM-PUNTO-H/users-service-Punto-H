@@ -1,7 +1,9 @@
 import { Router, Request, Response } from "express";
 import { User } from "../models/User";
+import bcrypt from "bcrypt";
 import { generateToken, verifyJwt } from "../middlewares/jwt.middleware";
 import { authorizeRoles } from "../middlewares/role.middleware";
+import { registerSchema } from "../validator/user.validator";
 
 const router = Router();
 
@@ -60,17 +62,25 @@ router.get("/allUsers", verifyJwt, authorizeRoles("admin"), async (req: Request,
  */
 router.post("/registerUser", async (req: Request, res: Response) => {
   try {
+    
+    const { error } = registerSchema.validate(req.body);  
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const searchUser= await User.findOne({where: {email: req.body.email}})
     if(searchUser){
       return res.status(400).json({message: 'Este correo ya esta en uso'});
     }
     
-    if (!req.body.email || !req.body.password || !req.body.fullName || !req.body.role || !req.body.phoneNumber ) {
-      return res.status(400).json({ message: 'Faltan campos obligatorios' });
-    }
-    const newUser= await User.create(req.body)
+    const { email, password, phoneNumber, fullName, role, socialMedia, workingHours, address } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const casteoPhoneNumber = parseInt(phoneNumber);
 
-    res.status(201).json({ message: 'Usuario creado',newUser: newUser});
+    await User.create({email,password: hashedPassword,phoneNumber: casteoPhoneNumber,fullName,role,socialMedia,
+      workingHours,address});
+
+    res.status(201).json({ message: 'Usuario creado exitosamente' });
 
   } catch (error: any) {
     res.status(500).json({ message: 'Error al procesar la creacion del usuario', error: error.message });
@@ -103,10 +113,17 @@ router.post("/login", async (req: Request, res: Response) => {
 
   try {
     const { email, password } = req.body;
-    const user: any = await User.findOne({ where: { email, password } });
-    if(user === null){
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+    const user: any = await User.findOne({ where: { email } });
+    if(!user){
+      return res.status(401).json({ message: 'Este usuario no existe' });
     }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Contraseña incorrecta' });
+    }
+
     if (user) {
       const {email, role, id} = user;
       const token = generateToken(email, role, id);
@@ -117,7 +134,7 @@ router.post("/login", async (req: Request, res: Response) => {
         maxAge: 60 * 60 * 1000,
       });
 
-      res.status(200).json({ message: 'Login exitoso', user });
+      res.status(200).json({ message: 'Login exitoso'});
     }
   }
   catch (error: any) {
