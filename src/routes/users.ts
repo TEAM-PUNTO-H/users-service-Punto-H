@@ -75,9 +75,8 @@ router.post("/registerUser", async (req: Request, res: Response) => {
     
     const { email, password, phoneNumber, fullName, role, socialMedia, workingHours, address } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const casteoPhoneNumber = parseInt(phoneNumber);
-
-    await User.create({email,password: hashedPassword,phoneNumber: casteoPhoneNumber,fullName,role,socialMedia,
+    
+    await User.create({email,password: hashedPassword,phoneNumber,fullName,role,socialMedia,
       workingHours,address});
 
     res.status(201).json({ message: 'Usuario creado exitosamente' });
