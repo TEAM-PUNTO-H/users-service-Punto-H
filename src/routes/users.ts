@@ -17,7 +17,7 @@ const router = Router();
  *       200:
  *         description: Retorna todos los usuarios
  */
-router.get("/allUsers", verifyJwt, authorizeRoles("admin"), async (req: Request, res: Response) => {
+router.get("/allUsers", verifyJwt, authorizeRoles("admin,moderador"), async (req: Request, res: Response) => {
     try {
     const users = await User.findAll()
     
@@ -25,6 +25,29 @@ router.get("/allUsers", verifyJwt, authorizeRoles("admin"), async (req: Request,
   } catch (error: any) {
     res.status(500).json({ message: 'Error al traer los usuarios', error: error.message });
   }
+});
+
+
+/**
+ * @swagger
+ * /api/users/userById/{id}:
+ *   get:
+ *     summary: Usuario por ID
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: Retorna usuario por ID
+ */
+router.get('/userById/:id', async (req, res) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener el usuario" });
+    }
 });
 
 /**
