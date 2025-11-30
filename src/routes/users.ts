@@ -18,10 +18,10 @@ const router = Router();
  *         description: Retorna todos los usuarios
  */
 router.get("/allUsers", verifyJwt, authorizeRoles("admin,moderador"), async (req: Request, res: Response) => {
-    try {
+  try {
     const users = await User.findAll()
-    
-    res.status(201).json({ message: 'Usuarios',users});
+
+    res.status(201).json({ message: 'Usuarios', users });
   } catch (error: any) {
     res.status(500).json({ message: 'Error al traer los usuarios', error: error.message });
   }
@@ -39,15 +39,15 @@ router.get("/allUsers", verifyJwt, authorizeRoles("admin,moderador"), async (req
  *         description: Retorna usuario por ID
  */
 router.get('/userById/:id', async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id);
-        if (!user) {
-            return res.status(404).json({ message: "Usuario no encontrado" });
-        }
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: "Error al obtener el usuario" });
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener el usuario" });
+  }
 });
 
 /**
@@ -85,22 +85,32 @@ router.get('/userById/:id', async (req, res) => {
  */
 router.post("/registerUser", async (req: Request, res: Response) => {
   try {
-    
-    const { error } = registerUserSchema.validate(req.body);  
+
+    const { error } = registerUserSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const searchUser= await User.findOne({where: {email: req.body.email}})
-    if(searchUser){
-      return res.status(400).json({message: 'Este correo ya esta en uso'});
+    const searchUser = await User.findOne({ where: { email: req.body.email } })
+    if (searchUser) {
+      return res.status(400).json({ message: 'Este correo ya esta en uso' });
     }
-    
+
     const { email, password, phoneNumber, fullName, role, socialMedia, workingHours, address } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    await User.create({email,password: hashedPassword,phoneNumber,fullName,role,socialMedia,
-      workingHours,address});
+    if (role.toLowerCase() == "vendedor") {
+      await User.create({
+        email, password: hashedPassword, phoneNumber, fullName, role, socialMedia,
+        workingHours, address, state: 'pendiente'
+      });
+
+      return res.status(201).json({ message: 'Usuario creado exitosamente y en estado pendiente de aprobacion' });
+    }
+
+    await User.create({
+      email, password: hashedPassword, phoneNumber, fullName, role, socialMedia,
+      workingHours, address, state: 'activo'
+    });
 
     res.status(201).json({ message: 'Usuario creado exitosamente' });
 
@@ -143,6 +153,8 @@ router.post("/registerUser", async (req: Request, res: Response) => {
  *                    type: string
  *                role:
  *                    type: string
+ *                state:
+ *                    type: string
  *                fullName:
  *                    type: string
  *     responses:
@@ -151,7 +163,7 @@ router.post("/registerUser", async (req: Request, res: Response) => {
  */
 router.put("/updateUser/:id", async (req: Request, res: Response) => {
   try {
-    const { error } = updateUserSchema.validate(req.body);  
+    const { error } = updateUserSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
@@ -160,22 +172,22 @@ router.put("/updateUser/:id", async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-    const { email} = req.body;
+    const { email } = req.body;
     if (email) {
       const sameEmailUser = await User.findOne({ where: { email: email } });
       if (sameEmailUser) {
-      return res.status(400).json({ message: 'Este correo ya está en uso por otro usuario' });
+        return res.status(400).json({ message: 'Este correo ya está en uso por otro usuario' });
       }
     }
 
-    const {password} = req.body;
-    if(!password){
+    const { password } = req.body;
+    if (!password) {
       await user.update(req.body);
       return res.status(201).json({ message: 'Usuario editado exitosamente' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await user.update({...req.body, password: hashedPassword});
+    await user.update({ ...req.body, password: hashedPassword });
 
     res.status(201).json({ message: 'Usuario editado exitosamente' });
 
@@ -206,23 +218,23 @@ router.put("/updateUser/:id", async (req: Request, res: Response) => {
  *       201:
  *         description: Login exitoso
  */
-router.post("/login", async (req: Request, res: Response) => {  
+router.post("/login", async (req: Request, res: Response) => {
 
   try {
     const { email, password } = req.body;
     const user: any = await User.findOne({ where: { email } });
-    if(!user){
+    if (!user) {
       return res.status(401).json({ message: 'Este usuario no existe' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
     if (user) {
-      const {email, role, id} = user;
+      const { email, role, id } = user;
       const token = generateToken(email, role, id);
       res.cookie("accessToken", token, {
         httpOnly: true,
@@ -231,13 +243,13 @@ router.post("/login", async (req: Request, res: Response) => {
         maxAge: 60 * 60 * 1000,
       });
 
-      res.status(200).json({ message: 'Login exitoso'});
+      res.status(200).json({ message: 'Login exitoso' });
     }
   }
   catch (error: any) {
     res.status(500).json({ message: 'Error al procesar el login del usuario', error: error.message });
   }
 
-  });
+});
 
 export default router;

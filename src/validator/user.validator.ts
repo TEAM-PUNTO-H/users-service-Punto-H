@@ -21,14 +21,18 @@ export const registerUserSchema = Joi.object({
         'any.required': 'El nombre completo es obligatorio',
         'string.empty': 'El nombre completo no puede estar vacío',
     }),
-    role: Joi.string().valid('admin', 'vendedor', 'comprador').required().messages({
+    role: Joi.string().valid('admin', 'vendedor','moderador', 'comprador').required().messages({
         'any.required': 'El rol es obligatorio',
         'string.empty': 'El rol no puede estar vacío',
-        'any.only': 'El rol debe ser "admin" , "vendedor" o "comprador"',
+        'any.only': 'El rol debe ser "admin" ,"vendedor", "moderador" o "comprador"',
     }),
     socialMedia: Joi.string().allow(null),
     workingHours: Joi.string().allow(null),
     address: Joi.string().allow(null),
+    state: Joi.string().allow(null).valid('activo', 'pendiente', 'inactivo').messages({
+        'any.only': 'El estado debe ser "activo", "pendiente" o "inactivo"',
+        'string.empty': 'El estado no puede estar vacío',
+    }),
 
 });
 
@@ -54,4 +58,9 @@ export const updateUserSchema = Joi.object({
     socialMedia: Joi.string().allow(null),
     workingHours: Joi.string().allow(null),
     address: Joi.string().allow(null),
+        state: Joi.string().allow(null).valid('activo', 'pendiente', 'inactivo').messages({
+        'any.only': 'El estado debe ser "activo", "pendiente" o "inactivo"',
+        'string.empty': 'El estado no puede estar vacío',
+    }),
+
 });
