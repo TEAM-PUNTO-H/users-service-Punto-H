@@ -17,7 +17,7 @@ const router = Router();
  *       200:
  *         description: Retorna todos los usuarios
  */
-router.get("/allUsers", verifyJwt, authorizeRoles("admin,moderador"), async (req: Request, res: Response) => {
+router.get("/allUsers", verifyJwt, authorizeRoles("admin","moderador"), async (req: Request, res: Response) => {
   try {
     const users = await User.findAll()
 
