@@ -2,8 +2,8 @@ services:
   users-service:
     build: .
     container_name: users-service
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"
     networks:
       - my-microservices-net
     environment:
