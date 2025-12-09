@@ -243,7 +243,7 @@ router.post("/login", async (req: Request, res: Response) => {
         maxAge: 60 * 60 * 1000,
       });
 
-      res.status(200).json({ message: 'Login exitoso' });
+      res.status(200).json({ message: 'Login exitoso' , id: user.id, role: user.role, state: user.state});
     }
   }
   catch (error: any) {
