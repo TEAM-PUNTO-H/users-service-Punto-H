@@ -17,7 +17,7 @@ const router = Router();
  *       200:
  *         description: Retorna todos los usuarios
  */
-router.get("/allUsers", verifyJwt, authorizeRoles("admin","moderador"), async (req: Request, res: Response) => {
+router.get("/allUsers", authorizeRoles("admin","moderador"), async (req: Request, res: Response) => {
   try {
     const users = await User.findAll()
 
@@ -243,7 +243,7 @@ router.post("/login", async (req: Request, res: Response) => {
         maxAge: 60 * 60 * 1000,
       });
 
-      res.status(200).json({ message: 'Login exitoso' , id: user.id, role: user.role, state: user.state});
+      res.status(200).json({ message: 'Login exitoso' , user});
     }
   }
   catch (error: any) {
